@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package github.com.Artenso.command_runner.api.command_runner;
+
+option go_package = "github.com/Artenso/command_runner/pkg/command_runner";
+
+import "validate/validate.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+enum Status{
+        UNSPECIFIED = 0;
+        NEW = 1;
+        IN_PROGRESS = 2;
+        DONE = 3;
+        FAILED = 4;
+        STOPPED = 5;
+}
+
+service CommandRunner {
+    rpc AddCommand (AddCommandRequest) returns (AddCommandResponse) {
+        option (google.api.http) = {
+            post: "/command/add"
+            body: "*"
+          };
+    };
+    rpc GetCommand (GetCommandRequest) returns (GetCommandResponse) {
+        option (google.api.http) = {
+            get: "/command/{id}"
+          };
+    };
+    rpc ListCommand (ListCommandRequest) returns (ListCommandResponse) {
+        option (google.api.http) = {
+            get: "/command/list"
+            body: "*"
+          };
+    };
+    rpc StopCommand (StopCommandRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/command/{id}/stop"
+            body: "*"
+          };
+    };
+}
+
+message AddCommandRequest {
+    string command = 1 [(validate.rules).string.min_len = 2];
+}
+
+message AddCommandResponse {
+    int64 id = 1;
+}
+
+message GetCommandRequest {
+    int64 id = 1 [(validate.rules).int64.gt = 0];
+}
+
+message GetCommandResponse {
+    string command = 1;
+    Status status = 2;
+    string output = 4;
+    int64 pid = 3; 
+}
+
+message ListCommandRequest {
+    int64 limit = 1 [(validate.rules).int64.gt = 0];
+    int64 offset = 2 [(validate.rules).int64.gte = 0];
+}
+
+message CommandInList {
+    string command = 1;
+    Status status = 2;
+    int64 pid = 3; 
+}
+
+message ListCommandResponse {
+    repeated CommandInList commands = 1;
+    
+}
+
+message StopCommandRequest {
+    int64 id = 1 [(validate.rules).int64.gt = 0];
+}
