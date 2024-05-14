@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14-alpine3.15
+    container_name: "command_runner_pg"
+    environment:
+      - "POSTGRES_DB=commands_storage"
+      - "POSTGRES_USER=postgres"
+      - "POSTGRES_PASSWORD=postgres"
+    ports:
+      - "5432:5432"
+
+  goose:
+    build: ./migrations/
+    restart: on-failure
+    environment:
+      DB_HOST: postgres
+    ports:
+      - "5444:5432"
+    depends_on:
+      - postgres
+
+  app:
+    build: .
+    ports:
+      - "50051:50051"
+      - "8000:8000"
+    depends_on:
+      - postgres
